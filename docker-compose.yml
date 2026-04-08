@@ -1,0 +1,35 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: petcare
+      POSTGRES_USER: workshop
+      POSTGRES_PASSWORD: workshop123
+    ports:
+      - '5432:5432'
+    volumes:
+      - petcare_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./petcare-api
+    environment:
+      DATABASE_URL: postgresql://workshop:workshop123@postgres:5432/petcare?schema=public
+      PORT: 3000
+    ports:
+      - '3000:3000'
+    depends_on:
+      - postgres
+
+  frontend:
+    build:
+      context: ./petcare-client
+    ports:
+      - '5173:5173'
+    depends_on:
+      - backend
+
+volumes:
+  petcare_data:
