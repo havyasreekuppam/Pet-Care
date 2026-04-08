@@ -1,7 +1,10 @@
 version: '3.8'
+
 services:
+  # ✅ PostgreSQL Database - the persistence layer
   postgres:
     image: postgres:16
+    container_name: petcare-postgres
     restart: unless-stopped
     environment:
       POSTGRES_DB: petcare
@@ -11,25 +14,113 @@ services:
       - '5432:5432'
     volumes:
       - petcare_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U workshop -d petcare']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '3'
 
+  # ✅ Backend API - main application service
   backend:
     build:
       context: ./petcare-api
+      dockerfile: Dockerfile
+    container_name: petcare-api
+    restart: unless-stopped
     environment:
+      # Database
       DATABASE_URL: postgresql://workshop:workshop123@postgres:5432/petcare?schema=public
+      # Server
       PORT: 3000
+      NODE_ENV: production
+      # Security
+      JWT_SECRET: petcare-secret-key-change-in-production
+      CORS_ORIGINS: 'http://localhost:5173,https://yourdomain.com'
+      # Monitoring
+      ENABLE_METRICS: 'true'
     ports:
       - '3000:3000'
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:3000/api/health']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '5'
 
+  # ✅ Frontend - React application
   frontend:
     build:
       context: ./petcare-client
+      dockerfile: Dockerfile
+    container_name: petcare-client
+    restart: unless-stopped
     ports:
       - '5173:5173'
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:5173']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '3'
 
 volumes:
   petcare_data:
+    driver: local
+
+# ✅ HORIZONTAL SCALING NOTES:
+# To scale the backend horizontally:
+# 1. Use a load balancer (nginx, HAProxy) in front of multiple backend instances
+# 2. Use docker-compose with replicas or deploy to Kubernetes
+# 3. Remove hard-coded port assignments for backend
+# 4. Use environment-based CORS_ORIGINS
+#
+# Example for Docker Swarm scaling:
+#   docker service scale petcare_backend=3
+#
+# Example for Kubernetes deployment:
+#   kubectl set replicas deployment/petcare-backend=3
+

@@ -1,0 +1,12 @@
+{
+  "[prisma]": {
+    "editor.defaultFormatter": "Prisma.prisma",
+    "editor.formatOnSave": true
+  },
+  "prisma.prismaConfigPath": "./prisma/schema.prisma",
+  "prisma.disableDiagnostics": false,
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
+}
+

@@ -1,4 +1,6 @@
 import express from 'express';
+import { authorize } from '../middleware/auth.js';
+import { createActivityLimiter } from '../middleware/rateLimiter.js';
 import {
   createActivity,
   deleteActivity,
@@ -11,17 +13,17 @@ import {
 
 const router = express.Router();
 
-// ✅ Base routes
+// ✅ Read-only routes (GET - generally allowed for all roles)
 router.get('/', getActivities);
-router.post('/', createActivity);
-
-// ✅ IMPORTANT: Specific routes BEFORE dynamic routes
 router.get('/filter', filterActivities);
 router.get('/vet-counter/:petName', vetCounter);
-
-// ✅ Dynamic routes (must be last)
 router.get('/:id', getActivityById);
-router.put('/:id', updateActivity);
-router.delete('/:id', deleteActivity);
+
+// ✅ Write routes (POST/PUT/DELETE - rate limited)
+// Development: allow all users to create
+// Production: require admin/user role (uncomment authorize check)
+router.post('/', createActivityLimiter, createActivity);
+router.put('/:id', authorize(['admin', 'user']), updateActivity);
+router.delete('/:id', authorize(['admin']), deleteActivity);
 
 export default router;

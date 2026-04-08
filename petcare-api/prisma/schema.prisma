@@ -1,3 +1,4 @@
+// Prisma 5 schema - Uses traditional url property in datasource
 generator client {
   provider = "prisma-client-js"
 }
