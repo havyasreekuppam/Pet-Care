@@ -1,15 +1,11 @@
 import { useState } from 'react';
 
-const initialState = {
-  petName: '',
-  activityType: '',
-  description: '',
-  duration: '',
-  activityDate: ''
-};
+const initialState = { petName: '', activityType: '', description: '', duration: '', activityDate: '' };
+const ACTIVITY_TYPES = ['Walk', 'Vet Visit', 'Grooming', 'Play', 'Feed', 'Bath', 'Training', 'Medication'];
 
 export default function ActivityForm({ onAddActivity }) {
   const [form, setForm] = useState(initialState);
+  const [submitted, setSubmitted] = useState(false);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -18,9 +14,7 @@ export default function ActivityForm({ onAddActivity }) {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    if (!form.petName || !form.activityType) {
-      return;
-    }
+    if (!form.petName || !form.activityType) return;
     onAddActivity({
       petName: form.petName,
       activityType: form.activityType,
@@ -29,81 +23,114 @@ export default function ActivityForm({ onAddActivity }) {
       activityDate: form.activityDate || new Date().toISOString()
     });
     setForm(initialState);
+    setSubmitted(true);
+    setTimeout(() => setSubmitted(false), 2500);
   };
 
   return (
-    <section className="rounded-3xl bg-white p-6 shadow-md">
-      <h2 className="text-2xl font-semibold text-slate-900">Add New Activity</h2>
-      <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className="block">
-            <span className="text-sm font-medium text-slate-700">Pet Name</span>
+    <section className="card" style={{ padding:'28px 32px' }}>
+      <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'24px' }}>
+        <span style={{ fontSize:'1.5rem' }}>➕</span>
+        <h2 className="section-title">Log New Activity</h2>
+      </div>
+
+      {submitted && (
+        <div style={{
+          background:'#e8f5e9', border:'1.5px solid #a5d6a7', borderRadius:'14px',
+          padding:'12px 16px', color:'#2e7d32', fontWeight:700, marginBottom:'16px',
+          display:'flex', alignItems:'center', gap:'8px', fontSize:'14px'
+        }}>
+          ✅ Activity logged successfully!
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} style={{ display:'flex', flexDirection:'column', gap:'16px' }}>
+        <div style={{ display:'grid', gap:'16px', gridTemplateColumns:'1fr 1fr' }}>
+          <div>
+            <label style={{ display:'block', fontSize:'13px', fontWeight:700, color:'var(--text-mid)', marginBottom:'6px', textTransform:'uppercase', letterSpacing:'0.05em' }}>
+              🐶 Pet Name *
+            </label>
             <input
+              className="field-input"
               name="petName"
               value={form.petName}
               onChange={handleChange}
-              className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-sky-500"
-              placeholder="Buddy"
+              placeholder="Buddy, Luna, Charlie..."
               required
             />
-          </label>
+          </div>
 
-          <label className="block">
-            <span className="text-sm font-medium text-slate-700">Activity Type</span>
-            <input
+          <div>
+            <label style={{ display:'block', fontSize:'13px', fontWeight:700, color:'var(--text-mid)', marginBottom:'6px', textTransform:'uppercase', letterSpacing:'0.05em' }}>
+              🏷️ Activity Type *
+            </label>
+            <select
+              className="field-input"
               name="activityType"
               value={form.activityType}
               onChange={handleChange}
-              className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-sky-500"
-              placeholder="Vet Visit, Walk, Grooming"
               required
-            />
-          </label>
+              style={{ cursor:'pointer' }}
+            >
+              <option value="">Choose type...</option>
+              {ACTIVITY_TYPES.map(t => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+              <option value="Other">Other</option>
+            </select>
+          </div>
         </div>
 
-        <label className="block">
-          <span className="text-sm font-medium text-slate-700">Description</span>
+        <div>
+          <label style={{ display:'block', fontSize:'13px', fontWeight:700, color:'var(--text-mid)', marginBottom:'6px', textTransform:'uppercase', letterSpacing:'0.05em' }}>
+            📝 Notes
+          </label>
           <textarea
+            className="field-input"
             name="description"
             value={form.description}
             onChange={handleChange}
-            className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-sky-500"
-            rows="3"
-            placeholder="Add details about the activity"
+            rows={3}
+            placeholder="Any observations, notes, or details..."
+            style={{ resize:'vertical' }}
           />
-        </label>
+        </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className="block">
-            <span className="text-sm font-medium text-slate-700">Duration (minutes)</span>
+        <div style={{ display:'grid', gap:'16px', gridTemplateColumns:'1fr 1fr' }}>
+          <div>
+            <label style={{ display:'block', fontSize:'13px', fontWeight:700, color:'var(--text-mid)', marginBottom:'6px', textTransform:'uppercase', letterSpacing:'0.05em' }}>
+              ⏱️ Duration (min)
+            </label>
             <input
+              className="field-input"
               name="duration"
               type="number"
+              min="1"
               value={form.duration}
               onChange={handleChange}
-              className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-sky-500"
               placeholder="30"
             />
-          </label>
+          </div>
 
-          <label className="block">
-            <span className="text-sm font-medium text-slate-700">Activity Date</span>
+          <div>
+            <label style={{ display:'block', fontSize:'13px', fontWeight:700, color:'var(--text-mid)', marginBottom:'6px', textTransform:'uppercase', letterSpacing:'0.05em' }}>
+              📅 Date
+            </label>
             <input
+              className="field-input"
               name="activityDate"
               type="date"
               value={form.activityDate}
               onChange={handleChange}
-              className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-sky-500"
             />
-          </label>
+          </div>
         </div>
 
-        <button
-          type="submit"
-          className="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-6 py-3 text-white transition hover:bg-slate-800"
-        >
-          Add Activity
-        </button>
+        <div style={{ paddingTop:'4px' }}>
+          <button type="submit" className="btn-primary">
+            🐾 Log Activity
+          </button>
+        </div>
       </form>
     </section>
   );

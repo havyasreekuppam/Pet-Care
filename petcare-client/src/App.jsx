@@ -22,15 +22,13 @@ function App() {
       setError('');
     } catch (err) {
       console.error(err);
-      setError('Unable to load activities');
+      setError('Unable to load activities. Make sure the server is running.');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    loadActivities();
-  }, []);
+  useEffect(() => { loadActivities(); }, []);
 
   const handleAdd = async (activity) => {
     try {
@@ -64,32 +62,119 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-        <header className="mb-10 rounded-3xl bg-white p-8 shadow-md">
-          <h1 className="text-4xl font-semibold text-slate-900">PetCare</h1>
-          <p className="mt-2 max-w-2xl text-slate-600">Track pet activities, appointments, vet visits, and wellness checks in one place.</p>
+    <div style={{ minHeight: '100vh' }}>
+      <div style={{ maxWidth: '1160px', margin: '0 auto', padding: '32px 20px' }}>
+
+        {/* Hero Header */}
+        <header className="fade-up" style={{
+          background: 'linear-gradient(135deg, #1e3a5f 0%, #2d5a8f 50%, #3d7bbf 100%)',
+          borderRadius: '28px',
+          padding: '40px 48px',
+          marginBottom: '36px',
+          position: 'relative',
+          overflow: 'hidden',
+          boxShadow: '0 12px 48px rgba(29, 90, 143, 0.35)',
+        }}>
+          {/* Decorative circles */}
+          <div style={{ position:'absolute', top:'-40px', right:'-40px', width:'180px', height:'180px', borderRadius:'50%', background:'rgba(255,255,255,0.08)' }} />
+          <div style={{ position:'absolute', bottom:'-20px', right:'120px', width:'100px', height:'100px', borderRadius:'50%', background:'rgba(0, 212, 255, 0.1)' }} />
+
+          <div style={{ display:'flex', alignItems:'center', gap:'16px', position:'relative' }}>
+            <span style={{ fontSize:'3rem' }}>🐾</span>
+            <div>
+              <h1 style={{ fontFamily:'"Playfair Display", serif', fontSize:'2.8rem', fontWeight:700, color:'white', lineHeight:1, marginBottom:'8px', textShadow: '0 0 20px rgba(0, 212, 255, 0.5)' }}>
+                PetCare
+              </h1>
+              <p style={{ color:'rgba(255,255,255,0.9)', fontSize:'1.05rem', fontFamily:'"Nunito", sans-serif', fontWeight:500, textShadow: '0 0 10px rgba(0, 212, 255, 0.3)' }}>
+                Track activities, vet visits & wellness — all in one cozy place 🌿
+              </p>
+            </div>
+          </div>
+
+          {/* Quick stats bar */}
+          <div style={{ display:'flex', gap:'24px', marginTop:'28px', position:'relative' }}>
+            {[
+              { emoji:'📋', label:'Total Activities', value: activities.length },
+              { emoji:'🏥', label:'Pets Tracked', value: [...new Set(activities.map(a => a.petName))].length },
+              { emoji:'📅', label:'This Month', value: activities.filter(a => new Date(a.activityDate) >= new Date(new Date().getFullYear(), new Date().getMonth(), 1)).length },
+            ].map(stat => (
+              <div key={stat.label} style={{
+                background: 'rgba(255,255,255,0.15)',
+                borderRadius: '14px',
+                padding: '12px 20px',
+                backdropFilter: 'blur(8px)',
+                border: '1px solid rgba(255,255,255,0.2)',
+                minWidth: '110px',
+              }}>
+                <div style={{ color:'white', fontFamily:'"Playfair Display", serif', fontSize:'1.6rem', fontWeight:700, lineHeight:1 }}>
+                  {stat.emoji} {stat.value}
+                </div>
+                <div style={{ color:'rgba(255,255,255,0.7)', fontSize:'11px', textTransform:'uppercase', letterSpacing:'0.07em', fontWeight:700, marginTop:'4px' }}>
+                  {stat.label}
+                </div>
+              </div>
+            ))}
+          </div>
         </header>
 
-        <main className="grid gap-8 lg:grid-cols-[1.35fr_0.65fr]">
-          <section className="space-y-8">
-            <ActivityForm onAddActivity={handleAdd} />
-            <FilterBar filters={filters} onApplyFilter={handleFilter} />
-            {error && <div className="rounded-xl bg-rose-100 p-4 text-rose-700">{error}</div>}
-            {loading ? (
-              <div className="rounded-xl bg-white p-6 text-slate-700 shadow-sm">Loading activities...</div>
-            ) : (
-              <ActivityList activities={activities} />
-            )}
-          </section>
+        {/* Main layout */}
+        <main style={{ display:'grid', gap:'28px', gridTemplateColumns:'1fr', alignItems:'start' }}>
+          <div style={{ display:'grid', gap:'28px', gridTemplateColumns: 'minmax(0,1.4fr) minmax(0,0.6fr)', alignItems:'start' }}
+               className="lg-grid">
 
-          <aside className="space-y-6">
-            <VetCounter selectedPet={selectedPet} setSelectedPet={setSelectedPet} api={api} />
-            <div className="rounded-3xl bg-white p-6 shadow-md">
-              <h2 className="text-xl font-semibold text-slate-900">Activity Summary</h2>
-              <p className="mt-3 text-slate-600">View all entries and filter by pet name, activity type, or date range.</p>
+            {/* Left column */}
+            <div style={{ display:'flex', flexDirection:'column', gap:'24px' }}>
+              <div className="fade-up delay-1">
+                <ActivityForm onAddActivity={handleAdd} />
+              </div>
+              <div className="fade-up delay-2">
+                <FilterBar filters={filters} onApplyFilter={handleFilter} />
+              </div>
+
+              {error && (
+                <div className="fade-up" style={{
+                  background:'#fce8e8', border:'1.5px solid #f5c6c6', borderRadius:'16px',
+                  padding:'16px 20px', color:'#c62828', fontWeight:600, display:'flex', gap:'8px', alignItems:'center'
+                }}>
+                  ⚠️ {error}
+                </div>
+              )}
+
+              <div className="fade-up delay-3">
+                {loading ? (
+                  <div style={{ display:'flex', flexDirection:'column', gap:'12px' }}>
+                    {[1,2,3].map(i => (
+                      <div key={i} className="shimmer" style={{ height:'100px' }} />
+                    ))}
+                  </div>
+                ) : (
+                  <ActivityList activities={activities} />
+                )}
+              </div>
             </div>
-          </aside>
+
+            {/* Right sidebar */}
+            <div style={{ display:'flex', flexDirection:'column', gap:'24px' }}>
+              <div className="fade-up delay-2">
+                <VetCounter selectedPet={selectedPet} setSelectedPet={setSelectedPet} api={api} />
+              </div>
+              <div className="fade-up delay-3 card" style={{ padding:'24px' }}>
+                <h2 className="section-title" style={{ marginBottom:'12px' }}>💡 Quick Tips</h2>
+                <ul style={{ listStyle:'none', padding:0, display:'flex', flexDirection:'column', gap:'10px' }}>
+                  {[
+                    { icon:'🔍', text:'Filter by pet name or activity type to find specific records' },
+                    { icon:'📅', text:'Use date range filters to review monthly activity patterns' },
+                    { icon:'🏥', text:'Check vet visit counter to see when your pet is due for a checkup' },
+                  ].map((tip, i) => (
+                    <li key={i} style={{ display:'flex', gap:'10px', alignItems:'flex-start', fontSize:'13.5px', color:'var(--text-mid)', lineHeight:1.5 }}>
+                      <span style={{ flexShrink:0 }}>{tip.icon}</span>
+                      <span>{tip.text}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
         </main>
       </div>
     </div>
